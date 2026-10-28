@@ -3,7 +3,7 @@ name: Forward Telegram channel
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # every 30 minutes (GitHub may delay runs a little)
+    - cron: "*/5 * * * *"   # every 30 minutes (GitHub may delay runs a little)
   workflow_dispatch:          # lets you run it manually with "Run workflow"
 
 concurrency: forward
