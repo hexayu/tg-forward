@@ -23,7 +23,7 @@ async def forward_batch(client, channel, ids):
     except errors.FloodWaitError:
         raise
     except Exception as e:
-        print(f"Batch failed ({type(e)._name_}), trying one by one", flush=True)
+        print(f"Batch failed ({e}), trying one by one", flush=True)
     sent = 0
     for i in ids:
         try:
@@ -32,7 +32,7 @@ async def forward_batch(client, channel, ids):
         except errors.FloodWaitError:
             raise
         except Exception as e:
-            print(f"Skipped post {i}: {type(e)._name_}", flush=True)
+            print(f"Skipped post {i}: {e}", flush=True)
         await asyncio.sleep(1)
     return sent
 
