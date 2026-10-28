@@ -1,0 +1,25 @@
+# Save this in your repo as: .github/workflows/forward.yml
+name: Forward Telegram channel
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # every 30 minutes (GitHub may delay runs a little)
+  workflow_dispatch:          # lets you run it manually with "Run workflow"
+
+concurrency: forward
+
+jobs:
+  forward:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install telethon
+      - run: python forward.py
+        env:
+          TG_API_ID: ${{ secrets.TG_API_ID }}
+          TG_API_HASH: ${{ secrets.TG_API_HASH }}
+          TG_SESSION: ${{ secrets.TG_SESSION }}
