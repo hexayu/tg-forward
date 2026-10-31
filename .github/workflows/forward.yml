@@ -3,23 +3,43 @@ name: Forward Telegram channel
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # every 30 minutes (GitHub may delay runs a little)
+    - cron: "*/5 * * * *"   # backup timer; cron-job.org starts it every minute
   workflow_dispatch:          # lets you run it manually with "Run workflow"
 
 concurrency: forward
+
+permissions:
+  contents: read
+  actions: write              # lets this workflow start the live recorder
 
 jobs:
   forward:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install telethon
-      - run: python forward.py
+      - id: forward
+        run: python forward.py
         env:
           TG_API_ID: ${{ secrets.TG_API_ID }}
           TG_API_HASH: ${{ secrets.TG_API_HASH }}
           TG_SESSION: ${{ secrets.TG_SESSION }}
+      - name: Start the live recorder
+        if: steps.forward.outputs.live == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          running=$(gh run list --workflow record_live.yml --limit 20 --json status \
+            --jq '[.[] | select(.status != "completed")] | length')
+          if [ "$running" = "0" ]; then
+            gh workflow run record_live.yml --ref "${{ github.ref_name }}"
+            echo "Channel is live: recorder started"
+          else
+            echo "Channel is live: recorder already running"
+          fi
